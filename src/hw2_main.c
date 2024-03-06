@@ -23,9 +23,9 @@ int main(int argc, char **argv) {
     // ask if i can declare expected parameters as null and check them later on so i don't have to do string stuff
     char *input_path = NULL;
     char *output_path = NULL;
-    // char *c_parameters = NULL;
+    char *c_parameters = NULL;
     char *p_parameters = NULL;
-    // char *r_parameters = NULL;
+    char *r_parameters = NULL;
     bool i_flag = false, o_flag = false, c_flag = false, p_flag = false, r_flag = false;
     int opt;
     // ask ta if different way to implement this or if i should just follow the article
@@ -35,13 +35,21 @@ int main(int argc, char **argv) {
                 if (check_duplicate(i_flag, (char)opt)) {
                     return DUPLICATE_ARGUMENT;
                 }
+                if (*optarg == '-') {
+                    fprintf(stderr, "Missing parameter for -i.\n");
+                    return MISSING_ARGUMENT;
+                }
                 i_flag = true;
                 input_path = optarg;
-                fprintf(stderr, "INPUT PATH: %s\n", input_path);
+                // fprintf(stderr, "INPUT PATH: %s\n", input_path);
                 break;
             case 'o':
                 if (check_duplicate(o_flag, (char)opt)) {
                     return DUPLICATE_ARGUMENT;
+                }
+                if (*optarg == '-') {
+                    fprintf(stderr, "Missing parameter for -o.\n");
+                    return MISSING_ARGUMENT;
                 }
                 o_flag = true;
                 output_path = optarg;
@@ -51,7 +59,8 @@ int main(int argc, char **argv) {
                     return DUPLICATE_ARGUMENT;
                 }
                 c_flag = true;
-                // c_parameters = optarg;
+                // fprintf(stderr, "C OPTARG: %s.\n", optarg);
+                c_parameters = optarg;
                 break;
             case 'p':
                 if (check_duplicate(p_flag, (char)opt)) {
@@ -59,20 +68,18 @@ int main(int argc, char **argv) {
                 }
                 p_flag = true;
                 p_parameters = optarg;
-                fprintf(stderr, "P PARAMETERS: %s\n", p_parameters);
+                // fprintf(stderr, "P PARAMETERS: %s\n", p_parameters);
                 break;
             case 'r':
                 if (check_duplicate(r_flag, (char)opt)) {
                     return DUPLICATE_ARGUMENT;
                 }
                 r_flag = true;
-                // r_parameters = optarg;
+                r_parameters = optarg;
                 break;
             case ':':
-                fprintf(stderr, "Option -%c requires an argument.\n", optopt);
                 return MISSING_ARGUMENT;
             case '?':
-                fprintf(stderr, "Unrecognized option: -%c\n", optopt);
                 return UNRECOGNIZED_ARGUMENT;
         }
     }
@@ -103,6 +110,95 @@ int main(int argc, char **argv) {
         fprintf(stderr, "The -p argument has been provided at least once, but the -c argument was not provided.\n");
         return C_ARGUMENT_MISSING;
     }
+
+    // check if c parameters are valid, make a tokenized array
+    if (c_flag) {
+        char* token;
+        int count = 0;
+        int split_c_parameters[4];
+        // fprintf(stderr, "C PARAM BEFORE: %s.\n", c_parameters);
+        token = strtok(c_parameters, ",");
+        // fprintf(stderr, "C PARAM AFTER: %s.\n", c_parameters);
+        // fprintf(stderr, "LENGTH: %zu\n", strlen(token));
+        while (token != NULL) {
+            if (count > 4) {
+                fprintf(stderr, "-c argument has too many parameters.\n");
+                return C_ARGUMENT_INVALID;
+            }
+            split_c_parameters[count] = strtol(token, NULL, 10);
+            token = strtok(NULL, ",");
+            count++;
+        }
+        if (count != 4) {
+            fprintf(stderr, "-c argument has incorrect number of parameters.\n");
+            return C_ARGUMENT_INVALID;
+        }
+
+        int c_row = split_c_parameters[0];
+        int c_col = split_c_parameters[1];
+        int c_width = split_c_parameters[2];
+        int c_height = split_c_parameters[3];
+
+        // Comment out, print statement to remove unused error
+        printf("I DID USE IT %d%d%d%d\n", c_col, c_row, c_width, c_height);
+    }
+
+    // check if p parameters are valid
+    if (p_flag) {
+        char *token;
+        int count = 0;
+        int split_p_parameters[2];
+        token = strtok(p_parameters, ",");
+        while (token != NULL && count < 2) {
+            split_p_parameters[count] = strtol(token, NULL, 10);
+            token = strtok(NULL, ",");
+            count++;
+        }
+        if (count != 2) {
+            fprintf(stderr, "-p argument has incorrect number of parameters.\n");
+            return P_ARGUMENT_INVALID;
+        }
+
+        int p_row = split_p_parameters[0];
+        int p_col = split_p_parameters[1];
+
+        // Comment out, print statement to remove unused error
+        printf("I DID USE IT %d%d\n", p_row, p_col);
+    }
+
+    // cant save actual parameter assignment for later, have to split and tokenize to be able to check the file
+    if (r_flag) {
+        char *message, *path_to_font;
+        int font_size, row, col;
+        char *token = strtok(r_parameters, ",");
+        message = token;
+        path_to_font = strtok(NULL, ",");
+        if (!path_to_font) return R_ARGUMENT_INVALID; // Ensure path_to_font exists
+
+        // Convert remaining parameters from string to int
+        token = strtok(NULL, ",");
+        if (token) font_size = strtol(token, NULL, 10); else return R_ARGUMENT_INVALID;
+        token = strtok(NULL, ",");
+        if (token) row = strtol(token, NULL, 10); else return R_ARGUMENT_INVALID;
+        token = strtok(NULL, ",");
+        if (token) col = strtol(token, NULL, 10); else return R_ARGUMENT_INVALID;
+
+        // Check if additional tokens exist (indicating too many parameters)
+        if (strtok(NULL, ",")) return R_ARGUMENT_INVALID;
+
+        // Comment out, print statement to remove unused error
+        printf("I DID USE IT %s%s%d%d%d\n", message, path_to_font, font_size, row, col);
+
+        // Check if font file can be opened
+        FILE *fontFile = fopen(path_to_font, "r");
+        if (!fontFile) {
+            fprintf(stderr, "Cannot open font file '%s'.\n", path_to_font);
+            return R_ARGUMENT_INVALID;
+        }
+        fclose(fontFile);
+    }
+
+    
 
 
 }
