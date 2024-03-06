@@ -173,18 +173,22 @@ int main(int argc, char **argv) {
         char *token = strtok(r_parameters, ",");
         message = token;
         path_to_font = strtok(NULL, ",");
-        if (!path_to_font) return R_ARGUMENT_INVALID; // Ensure path_to_font exists
+        if (!path_to_font) return R_ARGUMENT_INVALID; 
+        token = strtok(NULL, ",");
+        if (token) {
+            font_size = strtol(token, NULL, 10);
+        } else return R_ARGUMENT_INVALID; // if null
+        token = strtok(NULL, ",");
+        if (token) {
+            row = strtol(token, NULL, 10);
+        } else return R_ARGUMENT_INVALID;
+        token = strtok(NULL, ",");
+        if (token) {
+            col = strtol(token, NULL, 10);
+        } else return R_ARGUMENT_INVALID; // All check if not enough args
 
-        // Convert remaining parameters from string to int
-        token = strtok(NULL, ",");
-        if (token) font_size = strtol(token, NULL, 10); else return R_ARGUMENT_INVALID;
-        token = strtok(NULL, ",");
-        if (token) row = strtol(token, NULL, 10); else return R_ARGUMENT_INVALID;
-        token = strtok(NULL, ",");
-        if (token) col = strtol(token, NULL, 10); else return R_ARGUMENT_INVALID;
 
-        // Check if additional tokens exist (indicating too many parameters)
-        if (strtok(NULL, ",")) return R_ARGUMENT_INVALID;
+        if (strtok(NULL, ",")) return R_ARGUMENT_INVALID; // checks for if there are too many args
 
         // Comment out, print statement to remove unused error
         printf("I DID USE IT %s%s%d%d%d\n", message, path_to_font, font_size, row, col);
@@ -198,7 +202,17 @@ int main(int argc, char **argv) {
         fclose(fontFile);
     }
 
+    // typedef struct {
+    //     unsigned char r, g, b;
+    // } Color;
     
+    // typedef struct {
+    //     int width, height;
+    //     Color* pixels; 
+    // } Image;
+
+
+
 
 
 }
